@@ -1,5 +1,5 @@
 module.exports = {
-  publicPath:"chinavis2021",
+  publicPath:"/chinavis2021/",
   transpileDependencies: [
     'vuetify'
   ]
