@@ -1,5 +1,17 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    <lineChart />
   </div>
 </template>
+
+<script>
+import lineChart from "@/components/lineChart";
+
+export default {
+  name: "About",
+
+  components: {
+    lineChart,
+  },
+};
+</script>
