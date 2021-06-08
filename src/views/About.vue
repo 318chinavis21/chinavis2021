@@ -1,5 +1,23 @@
 <template>
   <div class="about">
-    <h1>This is an about page</h1>
+    <!--lineChart /-->
+    <radarChart />
+    <!--transPath /-->
   </div>
 </template>
+
+<script>
+import lineChart from "@/components/lineChart";
+import transPath from "@/components/transPath";
+import radarChart from "@/components/radarChart";
+
+export default {
+  name: "About",
+
+  components: {
+    lineChart,
+    transPath,
+    radarChart
+  },
+};
+</script>

@@ -9,14 +9,15 @@
       :i="item.i"
       :key="item.i"
     >
-      <v-card elevation="2" outlined style="height: 100%; width: 100%"></v-card>
+      <v-card elevation="2" outlined style="height: 100%; width: 100%">
+      </v-card>
     </grid-item>
   </grid-layout>
 </template>
 
 <script>
 import VueGridLayout from "vue-grid-layout";
-
+import lineChart from "@/components/lineChart";
 export default {
   components: {
     GridLayout: VueGridLayout.GridLayout,
