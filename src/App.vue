@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-navigation-drawer v-model="drawer" app right>
-      <!--  -->
+      <drawer></drawer>
     </v-navigation-drawer>
     <v-app-bar dense app color="primary">
       <v-app-bar-title>
@@ -20,12 +20,17 @@
 </template>
 
 <script>
+import Drawer from "./components/Drawer.vue";
 export default {
   name: "App",
 
   data: () => ({
     drawer: false,
   }),
+
+  components: {
+    Drawer,
+  },
 };
 </script>
 
