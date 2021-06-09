@@ -51,6 +51,14 @@
 </template>
 
 <script>
+import configs from "../configs/defaults";
+
+const { colorChannel, sizeChannel, timeStamp } = configs;
+
+const defaultYear = timeStamp.slice(0, 4);
+const defaultMonth = timeStamp.slice(4, 6);
+const defaultDay = timeStamp.slice(6, 8);
+
 export default {
   data: () => ({
     colorChannels: [
@@ -64,7 +72,7 @@ export default {
       "RH",
       "PSFC",
     ],
-    colorChannel: "PM2.5",
+    colorChannel: colorChannel,
     sizeChannels: [
       "无",
       "PM2.5",
@@ -77,10 +85,25 @@ export default {
       "RH",
       "PSFC",
     ],
-    sizeChannel: "TEMP",
+    sizeChannel: sizeChannel || "无",
     showWind: false,
-    date: null,
+    date: `${defaultYear}-${defaultMonth}-${defaultDay}`,
     menu: false,
   }),
+  watch: {
+    date(val) {
+      const [year, month, day] = val.split("-");
+      this.$store.commit("setTimestamp", `${year}${month}${day}00`);
+    },
+    sizeChannel(val) {
+      this.$store.commit("setSizeChannel", val);
+    },
+    colorChannel(val) {
+      this.$store.commit("setColorChannel", val);
+    },
+    showWind(val) {
+      this.$$store.commit("showWind", val);
+    },
+  },
 };
 </script>

@@ -12,6 +12,8 @@ import * as d3module from "d3";
 import * as topojson from "topojson-client";
 import * as d3hexbin from "d3-hexbin";
 
+import { mapState } from "vuex";
+
 const d3 = {
   ...d3module,
   ...d3hexbin,
@@ -22,6 +24,8 @@ let data = JSON.parse(raw_data["2013010100"]);
 
 const hexR = 5;
 const insideHexR = 3;
+
+let timeoutId = null;
 
 const edges = [
   {
@@ -78,6 +82,27 @@ function refreshColor(val) {
     .duration(1000); //过渡动画持续时间 1s;
 }
 
+function run() {
+  hex
+    .selectAll("path.hex")
+    .data(hexData)
+    .transition()
+    .duration(1000)
+    .delay(1000)
+    .ease(d3.easeLinear)
+    .attr("transform", (d) => {
+      const [x, y] = windOffset(d);
+      return `translate(${x},${y})`;
+    })
+    .transition()
+
+    .duration(1000)
+    .delay(1000)
+    .ease(d3.easeLinear)
+    .attr("transform", (d) => `translate(${d.x},${d.y})`);
+  timeoutId = setTimeout(run, 5000);
+}
+
 export default {
   async mounted() {
     const svg = d3.select("svg").attr("viewBox", [0, 0, width, height]);
@@ -114,16 +139,16 @@ export default {
     scaleColor = d3
       .scaleLinear()
       .domain([
-        d3.quantile(data, 0.1, (d) => d["TEMP"]),
-        d3.quantile(data, 0.9, (d) => d["TEMP"]),
+        d3.quantile(data, 0.1, (d) => d[this.colorChannel]),
+        d3.quantile(data, 0.9, (d) => d[this.colorChannel]),
       ])
       .range([0, 1]);
 
     scaleSize = d3
       .scaleLinear()
       .domain([
-        d3.quantile(data, 0.1, (d) => d["PM2.5"]),
-        d3.quantile(data, 0.95, (d) => d["PM2.5"]),
+        d3.quantile(data, 0.1, (d) => d[this.sizeChannel]),
+        d3.quantile(data, 0.95, (d) => d[this.sizeChannel]),
       ])
       .range([1, 4])
       .clamp(true);
@@ -148,7 +173,7 @@ export default {
       })
       .attr("class", "hex")
       .attr("fill", (d) => {
-        return color(d3.mean(d, (d) => d["TEMP"]));
+        return color(d3.mean(d, (d) => d[this.colorChannel]));
       })
       .on("click", (e, d) => {
         console.log("click!");
@@ -156,27 +181,7 @@ export default {
       });
 
     //连线
-    var group = hex.selectAll("path.hex");
 
-    function run() {
-      group
-        .data(hexData)
-        .transition()
-        .duration(1000)
-        .delay(1000)
-        .ease(d3.easeLinear)
-        .attr("transform", (d) => {
-          const [x, y] = windOffset(d);
-          return `translate(${x},${y})`;
-        })
-        .transition()
-
-        .duration(1000)
-        .delay(1000)
-        .ease(d3.easeLinear)
-        .attr("transform", (d) => `translate(${d.x},${d.y})`);
-      setTimeout(run, 5000);
-    }
     run();
 
     topojson, edges, geoGenerator, china;
@@ -203,16 +208,20 @@ export default {
     }
   },
   data: () => ({
-    colorChannel: "TEMP",
-    sizeChannel: null,
-    windChannel: {
-      threshold,
-      offset,
-    },
-    timeStamp: "2013010100",
+    // colorChannel: configs.colorChannel,
+    // sizeChannel: configs.sizeChannel,
+    // windChannel: {
+    //   threshold: configs.threshold,
+    //   offset: configs.offset,
+    // },
+    // timeStamp: configs.timeStamp,
   }),
+  computed: {
+    ...mapState(["colorChannel", "sizeChannel", "windChannel", "timeStamp"]),
+  },
   watch: {
     colorChannel(val) {
+      clearTimeout(timeoutId);
       scaleColor = d3
         .scaleLinear()
         .domain([
@@ -225,8 +234,10 @@ export default {
         return d3.interpolateRdYlGn(1 - scaleColor(d));
       };
       refreshColor(val);
+      run();
     },
     sizeChannel(val) {
+      clearTimeout(timeoutId);
       scaleSize = d3
         .scaleLinear()
         .domain([
@@ -236,6 +247,7 @@ export default {
         .range([1, 4])
         .clamp(true);
       refreshSize(val);
+      run();
     },
     "windChannel.threshold": function (val) {
       threshold = val;
@@ -267,7 +279,7 @@ export default {
               : insideHexR;
           return hexbin.hexagon(size);
         })
-        .duration(5000); //过渡动画持续时间 1s;
+        .duration(1000); //过渡动画持续时间 1s;
     },
   },
 };
