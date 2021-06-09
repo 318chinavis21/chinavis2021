@@ -175,7 +175,7 @@ export default {
       .attr("fill", (d) => {
         return color(d3.mean(d, (d) => d[this.colorChannel]));
       })
-      .on("click", function (e, d) {
+      .on("click", (e, d) => {
         this.$store.commit("selectStation", d);
       });
 
