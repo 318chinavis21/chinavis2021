@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <div class="pa-3">
+    <h3>控制面板</h3>
+    <v-divider class="mb-3"></v-divider>
     <v-menu
       ref="menu"
       v-model="menu"
@@ -15,7 +17,6 @@
         <v-text-field
           v-model="date"
           label="日期选择"
-          prepend-icon="mdi-calendar"
           readonly
           v-bind="attrs"
           v-on="on"
@@ -42,13 +43,7 @@
       item-color="accent"
       color="accent"
     ></v-select>
-    <v-switch
-      v-model="showWind"
-      inset
-      label="显示风速"
-      color="accent"
-      class="mx-3"
-    ></v-switch>
+    <v-switch v-model="showWind" label="显示风速" color="accent"></v-switch>
   </div>
 </template>
 

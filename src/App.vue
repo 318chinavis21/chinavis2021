@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" app right class="pa-2">
+    <v-navigation-drawer v-model="drawer" app right>
       <panel></panel>
     </v-navigation-drawer>
     <v-app-bar dense app color="primary">
