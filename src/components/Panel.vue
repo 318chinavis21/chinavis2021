@@ -23,7 +23,13 @@
           color="accent"
         ></v-text-field>
       </template>
-      <v-date-picker v-model="date" no-title scrollable>
+      <v-date-picker
+        v-model="date"
+        no-title
+        scrollable
+        locale="zh-cn"
+        :events="isAQIRed"
+      >
         <v-spacer></v-spacer>
         <v-btn text color="accent" @click="menu = false"> Cancel </v-btn>
         <v-btn text color="accent" @click="$refs.menu.save(date)"> OK </v-btn>
@@ -50,11 +56,27 @@
 <script>
 import configs from "../configs/defaults";
 
+import AQIs from "../assets/AQIs.json";
+import * as d3 from "d3";
+import _ from "lodash";
+
 const { colorChannel, sizeChannel, timeStamp, windChannel } = configs;
 
 const defaultYear = timeStamp.slice(0, 4);
 const defaultMonth = timeStamp.slice(4, 6);
 const defaultDay = timeStamp.slice(6, 8);
+
+let scaleColor = d3
+  .scaleLinear()
+  .domain([
+    d3.quantile(_.values(AQIs), 0.05, (d) => d.mean_AQI),
+    d3.quantile(_.values(AQIs), 0.95, (d) => d.mean_AQI),
+  ])
+  .range([0, 1]);
+
+let color = (d) => {
+  return d3.interpolateRdYlGn(1 - scaleColor(d));
+};
 
 export default {
   data: () => ({
@@ -100,6 +122,18 @@ export default {
     },
     showWind(val) {
       this.$store.commit("showWind", val);
+    },
+  },
+  methods: {
+    isAQIRed(date) {
+      const [year, month, day] = date.split("-");
+      const AQI = (AQIs[`${year}${month}${day}00`] || { mean_AQI: 0 }).mean_AQI;
+      // if (AQI > 62) {
+      //   return "red";
+      // } else if (AQI < 38) {
+      //   return "green";
+      // }
+      return color(AQI);
     },
   },
 };
