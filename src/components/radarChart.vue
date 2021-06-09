@@ -1,5 +1,5 @@
 <template>
-  <div style="width:500px; height:500px"></div>
+  <div style="width:100%; height:100%"></div>
 </template>
 
 <script>
@@ -44,8 +44,8 @@ export default {
     }
   },
   mounted() {
-    this.chart = echarts.init(this.$el);
-    this.chart.setOption(this.options);
+    this.radarChart = echarts.init(this.$el);
+    this.radarChart.setOption(this.options);
   }
 }
 </script>
