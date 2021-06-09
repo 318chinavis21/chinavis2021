@@ -175,9 +175,8 @@ export default {
       .attr("fill", (d) => {
         return color(d3.mean(d, (d) => d[this.colorChannel]));
       })
-      .on("click", (e, d) => {
-        console.log("click!");
-        console.log(d);
+      .on("click", function (e, d) {
+        this.$store.commit("selectStation", d);
       });
 
     //连线

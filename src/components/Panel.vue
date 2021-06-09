@@ -33,12 +33,14 @@
       v-model="colorChannel"
       :items="colorChannels"
       item-color="accent"
+      color="accent"
     ></v-select>
     <v-select
       label="大小通道"
       v-model="sizeChannel"
       :items="sizeChannels"
       item-color="accent"
+      color="accent"
     ></v-select>
     <v-switch
       v-model="showWind"
@@ -53,7 +55,7 @@
 <script>
 import configs from "../configs/defaults";
 
-const { colorChannel, sizeChannel, timeStamp } = configs;
+const { colorChannel, sizeChannel, timeStamp, windChannel } = configs;
 
 const defaultYear = timeStamp.slice(0, 4);
 const defaultMonth = timeStamp.slice(4, 6);
@@ -86,7 +88,7 @@ export default {
       "PSFC",
     ],
     sizeChannel: sizeChannel || "无",
-    showWind: false,
+    showWind: Boolean(windChannel.offset > 0),
     date: `${defaultYear}-${defaultMonth}-${defaultDay}`,
     menu: false,
   }),
@@ -102,7 +104,7 @@ export default {
       this.$store.commit("setColorChannel", val);
     },
     showWind(val) {
-      this.$$store.commit("showWind", val);
+      this.$store.commit("showWind", val);
     },
   },
 };

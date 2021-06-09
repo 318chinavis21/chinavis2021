@@ -3,11 +3,14 @@ import Vuex from 'vuex'
 
 import default_setting from "../configs/defaults";
 
+import _ from "lodash";
 Vue.use(Vuex)
+
+const config = _.cloneDeep(default_setting);
 
 export default new Vuex.Store({
   state: {
-    ...default_setting,
+    ...config,
     selectedStation: null,
   },
   mutations: {
@@ -32,11 +35,15 @@ export default new Vuex.Store({
     },
     showWind(state, val) {
       if (val) {
-        state.windChannel = default_setting.windChannel;
+        console.log(default_setting);
+        state.windChannel.offset = default_setting.windChannel.offset;
       }
       else {
         state.windChannel.offset = 0;
       }
+    },
+    selectStation(state, stations) {
+      state.selectedStation = _.cloneDeep(stations);
     }
 
   },
