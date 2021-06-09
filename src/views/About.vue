@@ -1,8 +1,8 @@
 <template>
   <div class="about">
-    <!--lineChart /-->
+    <lineChart />
     <radarChart />
-    <!--transPath /-->
+    <transPath />
   </div>
 </template>
 

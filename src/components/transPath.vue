@@ -1,5 +1,5 @@
 <template>
-  <div style="width:1500px; height:1000px"></div>
+  <div style="width:100%; height:100%"></div>
 </template>
 
 <script>
@@ -305,9 +305,18 @@ export default {
       }
     }
   },
+  watch: {
+    setOption: function(){
+      this.pathChart.setOption(this.options)
+      this.pathChart.resize()
+    }
+  },
   mounted() {
-    this.chart = echarts.init(this.$el);
-    this.chart.setOption(this.options);
+    this.pathChart = echarts.init(this.$el);
+    this.pathChart.setOption(this.options);
+    window.onresize = () =>{
+      this.pathChart.resize()
+    }
   }
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div style="width:1000px; height:500px"></div>
+  <div style="width:100%; height:100%"></div>
 </template>
 
 <script>
@@ -65,9 +65,18 @@ export default {
       }
     }
   },
+  watch: {
+    setOption: function(){
+      this.lineChart.setOption(this.options)
+      this.lineChart.resize()
+    }
+  },
   mounted() {
-    this.chart = echarts.init(this.$el);
-    this.chart.setOption(this.options);
+    this.lineChart = echarts.init(this.$el);
+    this.lineChart.setOption(this.options);
+    window.onresize = () =>{
+      this.lineChart.resize()
+    }
   }
 }
 </script>
