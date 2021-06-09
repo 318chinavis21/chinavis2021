@@ -1,7 +1,7 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" app right>
-      <drawer></drawer>
+    <v-navigation-drawer v-model="drawer" app right class="pa-2">
+      <panel></panel>
     </v-navigation-drawer>
     <v-app-bar dense app color="primary">
       <v-app-bar-title>
@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import Drawer from "./components/Drawer.vue";
+import Panel from "./components/Panel.vue";
 export default {
   name: "App",
 
@@ -29,7 +29,7 @@ export default {
   }),
 
   components: {
-    Drawer,
+    Panel,
   },
 };
 </script>
