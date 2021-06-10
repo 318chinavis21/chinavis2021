@@ -8,6 +8,10 @@ import "echarts/extension/bmap/bmap"
 
 export default {
   name: "transPath",
+  data: () => ({
+    date: "",
+    stat: []
+  }),
   methods: {
     convertData: function (data) {
       var geoCoordMap = {
@@ -306,6 +310,13 @@ export default {
     }
   },
   watch: {
+    timeStamp(val) {
+      this.date = val
+    },
+    station(val) {
+      this.stat = val
+      console.log('hhh' + val)
+    },
     setOption: function(){
       this.pathChart.setOption(this.options)
       this.pathChart.resize()

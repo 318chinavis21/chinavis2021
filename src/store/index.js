@@ -43,7 +43,12 @@ export default new Vuex.Store({
       }
     },
     selectStation(state, stations) {
+      console.log(stations)
       state.selectedStation = _.cloneDeep(stations);
+    },
+    station(state, station){
+      console.log(station)
+      state.station = station
     }
 
   },

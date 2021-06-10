@@ -4,10 +4,64 @@
 
 <script>
 import * as echarts from "echarts"
-
+import {mapState} from "vuex";
+import axios from "axios"
+import raw_data from "@/assets/data2.json";
+import moment from "moment"
 export default {
   name: "lineChart",
+  data: () => ({
+    date: "",
+    xDates: [],
+    trueData: [],
+    preData: []
+  }),
+  methods: {
+    getAQI(lat, lon){
+      let param = new URLSearchParams()
+      console.log(lat, lon)
+      param.append('time', "2018011500/")
+      param.append('lat', lat) //改
+      param.append('lon', lon) //改
+      axios
+          .get("/api/pre_AQI/2018011500/" + String(lat) + "/" + String(lon), param)
+          .then(response => {
+            this.trueData = []
+            for(var i = 0; i < 15; i++){
+              this.trueData.push(parseInt(response.data[i]['AQI']))
+              //this.trueData.push(1)
+            }
+            this.preData = ['null', 'null', 'null', 'null', 'null', 'null', 'null']
+            for(var i = 7; i < 15; i++){
+              this.preData.push(parseInt(response.data[i]['pre_AQI']))
+              //this.preData.push(1.5)
+            }
+            this.lineChart.setOption(this.options)
+            console.log(response)
+          })
+          .catch(response => {
+            console.log(response);
+          });
+    },
+    getInfStation(val){
+      let param = new URLSearchParams()
+      param.append('time', "2018011500/")
+      param.append('stations', val) //改
+      var root = JSON.stringify(val)
+      axios
+          .get("/api/influence/2018011500/" + root, param)
+          .then(response => {
+            this.getAQI(response.data[0], response.data[1])
+            this.$store.commit("station", [response.data[0], response.data[1]]);
+            console.log(response)
+          })
+          .catch(response => {
+            console.log(response);
+          });
+    }
+  },
   computed: {
+    ...mapState(["timeStamp", "selectedStation"]),
     options: function () {
       return{
         animation: false,
@@ -21,7 +75,7 @@ export default {
           data: ['预测值', '真实值']
         },
         xAxis: {
-          data: ['2016-04-01', '2016-04-02', '2016-04-03', '2016-04-04', '2016-04-05', '2016-04-06', '2016-04-07', '2016-04-08', '2016-04-09', '2016-04-10', '2016-04-11', '2016-04-12', '2016-04-13', '2016-04-14', '2016-04-15', '2016-04-16', '2016-04-17', '2016-04-18', '2016-04-19', '2016-04-20', '2016-04-21', '2016-04-22', '2016-04-23', '2016-04-24', '2016-04-25', '2016-04-26', '2016-04-27', '2016-04-28', '2016-04-29', '2016-04-30', '2016-05-01', '2016-05-02', '2016-05-03', '2016-05-04', '2016-05-05', '2016-05-06', '2016-05-07', '2016-05-08', '2016-05-09', '2016-05-10', '2016-05-11', '2016-05-12', '2016-05-13', '2016-05-14', '2016-05-15', '2016-05-16', '2016-05-17', '2016-05-18', '2016-05-19', '2016-05-20', '2016-05-21', '2016-05-22', '2016-05-23', '2016-05-24', '2016-05-25', '2016-05-26', '2016-05-27', '2016-05-28', '2016-05-29', '2016-05-30'],
+          data: this.xDates,
           boundaryGap: true
         },
         yAxis: {
@@ -32,29 +86,28 @@ export default {
           type: 'line',
           stack: 'all',
           symbolSize: 6,
-          data: [1.7, 1.2, 0.3, 0.4, 0.1, 1.2, 0.7, 1.9, 0.6, 0.3, 0.1, 0.1, 1.3, 0.7, 0.0, 1.2, 1.3, 1.2, 0.7, 0.2, 0.1, 0.9, 2.0, 1.3, 0.4, 1.1, 0.5, 1.1, 2.0, 0.7, 1.8, 0.3, 2.0, 0.2, 1.1, 1.0, 0.9, 1.0, 1.8, 1.7, 1.7, 2.0, 1.1, 2.0, 2.0, 0.7, 0.1, 1.0, 0.7, 1.0, 0.0, 0.3, 1.0, 0.6, 2.0, 0.6, 1.2, 1.2, 0.4, 1.2],
+          data: this.trueData,
           markLine: {
             symbol: ['none', 'none'],
-            label: {show: false},
-            data: [
-              {xAxis: '2016-04-30'}
-            ]
+            label: {show: false}
           },
+          smooth: true,
           markArea: {
             itemStyle: {
               color: 'rgba(255, 173, 177, 0.4)'
             },
             data: [ [{
               name: '预测情况',
-              xAxis: '2016-04-30'
+              xAxis: '2018-01-15'
             }, {
-              xAxis: '2016-05-30'
+              xAxis: '2018-01-22'
             }] ]
           }
         },{
           name: '预测值',
           type: 'line',
-          data: ['null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 'null', 0.7, 1.7, 0.5, 1.0, 1.5, 0.3, 1.8, 1.8, 0.1, 1.0, 1.2, 1.2, 0.6, 1.4, 1.4, 1.9, 1.7, 1.7, 1.0, 0.9, 0.8, 0.1, 0.6, 0.3, 0.4, 1.2, 0.0, 1.3, 0.4, 1.0, 1.8]
+          smooth: true,
+          data: this.preData
         }],
         grid: {
           top: 30,
@@ -69,6 +122,19 @@ export default {
     setOption: function(){
       this.lineChart.setOption(this.options)
       this.lineChart.resize()
+    },
+    timeStamp(val) {
+      this.date = val
+      this.xDates = ['2018-01-08', '2018-01-09', '2018-01-10', '2018-01-11', '2018-01-12', '2018-01-13', '2018-01-14', '2018-01-15', '2018-01-16', '2018-01-17', '2018-01-18', '2018-01-19', '2018-01-20', '2018-01-21', '2018-01-22']
+    },
+    selectedStation(val){
+      var stations = []
+      for(var i = 0; i < val.length; i++){
+        stations.push([val[i]['lat'], val[i]['lon']])
+      }
+      console.log(stations)
+      this.getInfStation(stations)
+      //this.getAQI()
     }
   },
   mounted() {
