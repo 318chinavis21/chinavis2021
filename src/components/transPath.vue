@@ -5,108 +5,41 @@
 <script>
 import * as echarts from "echarts";
 import "echarts/extension/bmap/bmap"
+import {mapState} from "vuex";
+import axios from "axios";
 
 export default {
   name: "transPath",
   data: () => ({
     date: "",
-    stat: []
+    stat: [104.114129, 37.550339],
+    paths: []
   }),
   methods: {
-    convertData: function (data) {
-      var geoCoordMap = {
-        '沧州':[116.83,38.33],
-        '临沂':[118.35,35.05],
-        '南充':[106.110698,30.837793],
-        '天津':[117.2,39.13],
-        '富阳':[119.95,30.07],
-        '泰安':[117.13,36.18],
-        '诸暨':[120.23,29.71],
-        '郑州':[113.65,34.76],
-        '哈尔滨':[126.63,45.75],
-        '聊城':[115.97,36.45],
-        '芜湖':[118.38,31.33],
-        '唐山':[118.02,39.63],
-        '平顶山':[113.29,33.75],
-        '邢台':[114.48,37.05],
-        '德州':[116.29,37.45],
-        '济宁':[116.59,35.38],
-        '荆州':[112.239741,30.335165],
-        '宜昌':[111.3,30.7],
-        '义乌':[120.06,29.32],
-        '丽水':[119.92,28.45],
-        '洛阳':[112.44,34.7],
-        '秦皇岛':[119.57,39.95],
-        '株洲':[113.16,27.83],
-        '石家庄':[114.48,38.03],
-        '莱芜':[117.67,36.19],
-        '常德':[111.69,29.05],
-        '保定':[115.48,38.85],
-        '湘潭':[112.91,27.87],
-        '金华':[119.64,29.12],
-        '岳阳':[113.09,29.37],
-        '长沙':[113,28.21],
-        '衢州':[118.88,28.97],
-        '廊坊':[116.7,39.53],
-        '菏泽':[115.480656,35.23375],
-        '合肥':[117.27,31.86],
-        '武汉':[114.31,30.52],
-        '大庆':[125.03,46.58]
-      };
-      var res = [];
-      for (var i = 0; i < data.length; i++) {
-        var geoCoord = geoCoordMap[data[i].name];
-        if (geoCoord) {
-          res.push({
-            name: data[i].name,
-            value: geoCoord.concat(data[i].value)
+    getPath(time, lat, lon){
+      let param = new URLSearchParams()
+      param.append('time', "2018011500/")
+      param.append('lat', lat) //改
+      param.append('lon', lon)
+      axios
+          .get("/api/tpn/2018011500/" + lat + '/' + lon , param)
+          .then(response => {
+            this.paths = []
+            for(var i = 0; i < response.data['PM2.5'].length; i++){
+              this.paths.push({coords: [[response.data['PM2.5'][i][9], response.data['PM2.5'][i][8]], [response.data['PM2.5'][i][11], response.data['PM2.5'][i][10]]]})
+              this.pathChart.setOption(this.options)
+            }
+            console.log(this.paths)
+          })
+          .catch(response => {
+            console.log(response);
           });
-        }
-      }
-      return res;
     }
   },
   computed: {
+    ...mapState(["timeStamp", "station"]),
     options: function (){
-      var data = [
-        {name: '沧州', value: 100},
-        {name: '临沂', value: 103},
-        {name: '南充', value: 104},
-        {name: '天津', value: 105},
-        {name: '富阳', value: 106},
-        {name: '泰安', value: 112},
-        {name: '诸暨', value: 112},
-        {name: '郑州', value: 113},
-        {name: '哈尔滨', value: 114},
-        {name: '聊城', value: 116},
-        {name: '芜湖', value: 117},
-        {name: '唐山', value: 119},
-        {name: '平顶山', value: 119},
-        {name: '邢台', value: 119},
-        {name: '德州', value: 120},
-        {name: '济宁', value: 120},
-        {name: '荆州', value: 127},
-        {name: '宜昌', value: 130},
-        {name: '义乌', value: 132},
-        {name: '丽水', value: 133},
-        {name: '洛阳', value: 134},
-        {name: '秦皇岛', value: 136},
-        {name: '株洲', value: 143},
-        {name: '石家庄', value: 147},
-        {name: '莱芜', value: 148},
-        {name: '常德', value: 152},
-        {name: '保定', value: 153},
-        {name: '湘潭', value: 154},
-        {name: '金华', value: 157},
-        {name: '岳阳', value: 169},
-        {name: '长沙', value: 175},
-        {name: '衢州', value: 177},
-        {name: '廊坊', value: 193},
-        {name: '菏泽', value: 194},
-        {name: '合肥', value: 229},
-        {name: '武汉', value: 273},
-        {name: '大庆', value: 279}
-      ];
+
       return{
         backgroundColor: 'transparent',
         title: {
@@ -121,7 +54,7 @@ export default {
           trigger: 'item'
         },
         bmap: {
-          center: [104.114129, 37.550339],
+          center: this.stat,
           zoom: 5,
           roam: true,
           mapStyle: {
@@ -246,11 +179,9 @@ export default {
                 curveness: 0//边的曲度，支持从 0 到 1 的值，值越大曲度越大。
               }
             },
-            data:[
-              {fromName: "武汉", toName: "大庆", coords:[[114.31,30.52],[125.03,46.58]]},
-              {fromName: "长沙", toName: "湘潭", coords:[[113,28.21],[112.91,27.87]]}
-              ] //线数据集。【【起点】，【终点】】
+            data: this.paths
           },
+            /*
           {
             name: 'pm2.5',
             type: 'scatter',
@@ -274,7 +205,10 @@ export default {
                 show: true
               }
             }
+
           },
+          */
+          /*
           {
             name: 'Top 5',
             type: 'effectScatter',
@@ -304,7 +238,7 @@ export default {
               shadowColor: '#333'
             },
             zlevel: 2
-          }
+          }*/
         ]
       }
     }
@@ -314,8 +248,10 @@ export default {
       this.date = val
     },
     station(val) {
-      this.stat = val
-      console.log('hhh' + val)
+      this.stat = [val[0], val[1]]
+      this.getPath('2018011500', val[0], val[1])
+      this.pathChart.setOption(this.options)
+      console.log(val)
     },
     setOption: function(){
       this.pathChart.setOption(this.options)

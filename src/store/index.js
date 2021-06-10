@@ -12,6 +12,7 @@ export default new Vuex.Store({
   state: {
     ...config,
     selectedStation: [],
+    station: []
   },
   mutations: {
     setTimestamp(state, val) {
