@@ -4,6 +4,12 @@
 
 <script>
 import * as echarts from "echarts";
+import * as d3 from "d3";
+import _ from "lodash";
+
+import raw_data from "../assets/data2.json";
+
+const dimensions = ["PM2.5", "PM10", "CO", "NO2", "SO2", "O3"];
 
 export default {
   name: "radarChart",
@@ -20,36 +26,25 @@ export default {
         },
         radar: {
           // shape: 'circle',
-          indicator: [
-            { name: "PM2.5", max: 115 },
-            { name: "PM10", max: 250 },
-            { name: "CO", max: 14 },
-            { name: "NO2", max: 180 },
-            { name: "SO2", max: 475 },
-            { name: "O3", max: 215 },
-          ],
+          indicator: dimensions.map((d) => ({
+            name: d,
+            max: this.upperBound[d],
+            min: this.lowerBound[d],
+          })),
         },
         series: [
           {
-            name: "XX空气质量",
+            name: "空气质量",
             type: "radar",
             areaStyle: {},
             data: [
               {
-                value: [
-                  // rawToAqi("pm25", this.values["PM2.5"], "CN"),
-                  // rawToAqi("pm10", this.values["PM10"], "CN"),
-                  // rawToAqi("co", this.values["CO"], "CN"),
-                  // rawToAqi("no2", this.values["NO2"], "CN"),
-                  // rawToAqi("so2", this.values["SO2"], "CN"),
-                  // rawToAqi("o3", this.values["O3"], "CN"),
-                  Math.min(this.values["PM2.5"], 115),
-                  Math.min(this.values["PM10"], 250),
-                  Math.min(this.values["CO"], 14),
-                  Math.min(this.values["NO2"], 180),
-                  Math.min(this.values["SO2"], 475),
-                  Math.min(this.values["O3"], 215),
-                ],
+                value: dimensions.map((d) =>
+                  Math.max(
+                    Math.min(this.values[d], this.upperBound[d]),
+                    this.lowerBound[d]
+                  )
+                ),
               },
             ],
           },
@@ -57,9 +52,35 @@ export default {
       };
     },
     values() {
-      return this.$store.state.selectedStation.length > 0
-        ? this.$store.state.selectedStation[0]
-        : {};
+      if (this.$store.state.selectedStation.length <= 0) {
+        return {};
+      } else {
+        let res = {};
+        for (const key of dimensions) {
+          res[key] = _.round(
+            d3.mean(this.$store.state.selectedStation, (d) => d[key]),
+            2
+          );
+        }
+        return res;
+      }
+    },
+    timeData() {
+      return JSON.parse(raw_data[this.$store.state.timeStamp]);
+    },
+    lowerBound() {
+      let res = {};
+      for (const key of dimensions) {
+        res[key] = d3.min(this.timeData, (d) => d[key]);
+      }
+      return res;
+    },
+    upperBound() {
+      let res = {};
+      for (const key of dimensions) {
+        res[key] = d3.quantile(this.timeData, 0.95, (d) => d[key]);
+      }
+      return res;
     },
   },
   mounted() {
