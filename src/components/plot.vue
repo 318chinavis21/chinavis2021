@@ -7,19 +7,43 @@ import raw_data from "../assets/data2.json";
 // import raw_data1 from "../assets/data1.json";
 
 import raw_china from "../assets/china-provinces.json";
-//import { legend } from "@d3/color-legend";
+import legend from "d3-svg-legend";
 import * as d3module from "d3";
 import * as topojson from "topojson-client";
 import * as d3hexbin from "d3-hexbin";
+import aqi from "../utils/aqi";
 
 import { mapState } from "vuex";
+
+// const polluant_color = {
+//   "PM2.5": "#f44336",
+//   PM10: "#e91e63",
+//   O3: "#2196f3",
+//   NO2: "#ff9800",
+//   SO2: "#795548",
+// };
 
 const d3 = {
   ...d3module,
   ...d3hexbin,
+  ...legend,
 };
 
-let data = JSON.parse(raw_data["2013010100"]);
+// const polluant_color = {
+//   "PM2.5": d3.schemeSet2[0],
+//   PM10: d3.schemeSet2[1],
+//   O3: d3.schemeSet2[2],
+//   NO2: d3.schemeSet2[3],
+//   SO2: d3.schemeSet2[4],
+//   CO: d3.schemeSet2[5],
+// };
+
+const polluant_color = d3
+  .scaleOrdinal()
+  .domain(["PM2.5", "PM10", "O3", "NO2", "SO2", "CO"])
+  .range(d3.schemeDark2);
+
+let data = prepareData("2013010100");
 // let data1 = JSON.parse(raw_data1);
 
 const hexR = 5;
@@ -52,11 +76,31 @@ function windOffset(d) {
   return [x + signU * off, y + signV * off];
 }
 
+function prepareData(timeStamp) {
+  let data = JSON.parse(raw_data[timeStamp]);
+  for (let record of data) {
+    let t = [
+      ["PM2.5", record["PM2.5"]],
+      ["PM10", record["PM10"]],
+      ["O3", record["O3"]],
+      ["NO2", record["NO2"]],
+      ["SO2", record["SO2"]],
+      ["CO", record["CO"]],
+    ];
+    record.AQI = aqi.aqi(t);
+    record.most_polluant = aqi.most_polluant(t);
+  }
+  return data;
+}
+
 const projection = d3.geoMercator().center([107, 35]).scale(500);
 const width = 800,
   height = 600;
+let svg;
 
 let anotherData, hexbin, hex, hexData, scaleColor, scaleSize, color, map;
+
+let polluant_legend, color_legend;
 
 function refreshSize(val) {
   hex
@@ -77,9 +121,38 @@ function refreshColor(val) {
     .data(hexData)
     .transition()
     .attr("fill", (d) => {
-      return color(d3.mean(d, (d) => d[val]));
+      if (val == "most_polluant") {
+        const p = _(d)
+          .countBy((x) => x[val])
+          .toPairs()
+          .maxBy((x) => x[1])[0];
+        return polluant_color(p);
+      } else {
+        return color(d3.mean(d, (d) => d[val]));
+      }
     })
     .duration(1000); //过渡动画持续时间 1s;
+}
+
+function setLegend(channel) {
+  polluant_legend = d3
+    .legendColor()
+    .shapeWidth(30)
+    .shapePadding(10)
+    .labelOffset(25)
+    .scale(polluant_color);
+
+  color_legend = d3
+    .legendColor()
+    .shapeWidth(30)
+    .cells(10)
+    .orient("horizontal")
+    .scale(color);
+  if (channel == "most_polluant") {
+    svg.select(".legendOrdinal").call(polluant_legend);
+  } else {
+    svg.select(".legendOrdinal").call(color_legend);
+  }
 }
 
 function run() {
@@ -105,7 +178,7 @@ function run() {
 
 export default {
   async mounted() {
-    const svg = d3.select("svg").attr("viewBox", [0, 0, width, height]);
+    svg = d3.select("svg").attr("viewBox", [0, 0, width, height]);
     const geoGenerator = d3.geoPath().pointRadius(5).projection(projection);
     anotherData = data.map((d) => {
       const [px, py] = projection([d.lon, d.lat]);
@@ -137,12 +210,12 @@ export default {
       .attr("fill", "#eee");
 
     scaleColor = d3
-      .scaleLinear()
+      .scaleSequential((t) => d3.interpolateRdYlGn(1 - t))
       .domain([
         d3.quantile(data, 0.1, (d) => d[this.colorChannel]),
         d3.quantile(data, 0.9, (d) => d[this.colorChannel]),
       ])
-      .range([0, 1]);
+      .clamp(true);
 
     scaleSize = d3
       .scaleLinear()
@@ -153,9 +226,11 @@ export default {
       .range([1, 4])
       .clamp(true);
 
-    color = (d) => {
-      return d3.interpolateRdYlGn(1 - scaleColor(d));
-    };
+    // color = (d) => {
+    //   return d3.interpolateRdYlGn(1 - scaleColor(d));
+    // };
+
+    color = scaleColor;
 
     //主要编码六边形
     hex
@@ -179,8 +254,27 @@ export default {
         this.$store.commit("selectStation", d);
       });
 
-    //连线
+    //图例
+    svg
+      .append("g")
+      .attr("class", "legendOrdinal")
+      .attr("transform", "translate(20,20)");
 
+    polluant_legend = d3
+      .legendColor()
+      .shapeWidth(30)
+      .shapePadding(10)
+      .scale(polluant_color);
+
+    color_legend = d3
+      .legendColor()
+      .shapeWidth(30)
+      .cells(10)
+      .orient("horizontal")
+      .scale(color);
+
+    // svg.select(".legendOrdinal").call(legendOrdinal);
+    setLegend(this.colorChannel);
     run();
 
     topojson, edges, geoGenerator, china;
@@ -201,38 +295,26 @@ export default {
         case "wheel":
           hex.transition().duration(200).attr("transform", event.transform);
           //map.transition().duration(200).attr("transform", event.transform);
-
           break;
       }
     }
   },
-  data: () => ({
-    // colorChannel: configs.colorChannel,
-    // sizeChannel: configs.sizeChannel,
-    // windChannel: {
-    //   threshold: configs.threshold,
-    //   offset: configs.offset,
-    // },
-    // timeStamp: configs.timeStamp,
-  }),
+  data: () => ({}),
   computed: {
     ...mapState(["colorChannel", "sizeChannel", "windChannel", "timeStamp"]),
   },
   watch: {
     colorChannel(val) {
       clearTimeout(timeoutId);
-      scaleColor = d3
-        .scaleLinear()
+      color = scaleColor = d3
+        .scaleSequential((t) => d3.interpolateRdYlGn(1 - t))
         .domain([
           d3.quantile(data, 0.1, (d) => d[val]),
           d3.quantile(data, 0.9, (d) => d[val]),
         ])
-        .range([0, 1]);
-
-      color = (d) => {
-        return d3.interpolateRdYlGn(1 - scaleColor(d));
-      };
+        .clamp(true);
       refreshColor(val);
+      setLegend(val);
       run();
     },
     sizeChannel(val) {
@@ -255,7 +337,7 @@ export default {
       offset = val;
     },
     timeStamp(val) {
-      data = JSON.parse(raw_data[val]);
+      data = prepareData(val);
       anotherData = data.map((d) => {
         const [px, py] = projection([d.lon, d.lat]);
         return Object.assign(d, {
@@ -269,7 +351,15 @@ export default {
         .data(hexData)
         .transition()
         .attr("fill", (d) => {
-          return color(d3.mean(d, (d) => d[this.colorChannel]));
+          if (this.colorChannel == "most_polluant") {
+            const p = _(d)
+              .countBy((x) => x[this.colorChannel])
+              .toPairs()
+              .maxBy((x) => x[1])[0];
+            return polluant_color(p);
+          } else {
+            return color(d3.mean(d, (d) => d[this.colorChannel]));
+          }
         })
         .attr("d", (d) => {
           let size =

@@ -81,6 +81,7 @@ let color = (d) => {
 export default {
   data: () => ({
     colorChannels: [
+      "AQI",
       "PM2.5",
       "PM10",
       "SO2",
@@ -90,10 +91,12 @@ export default {
       "TEMP",
       "RH",
       "PSFC",
+      "most_polluant",
     ],
     colorChannel: colorChannel,
     sizeChannels: [
       "无",
+      "AQI",
       "PM2.5",
       "PM10",
       "SO2",
