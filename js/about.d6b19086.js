@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["about"],{f820:function(a,t,n){"use strict";n.r(t);var r=function(){var a=this,t=a.$createElement,n=a._self._c||t;return n("div",{staticClass:"about"},[n("lineChart"),n("radarChart"),n("transPath")],1)},e=[],s=n("26f2"),l=n("e568"),o=n("7500"),u={name:"About",components:{lineChart:s["a"],transPath:l["a"],radarChart:o["a"]}},c=u,i=n("2877"),h=Object(i["a"])(c,r,e,!1,null,null,null);t["default"]=h.exports}}]);
+//# sourceMappingURL=about.d6b19086.js.map
