@@ -49,7 +49,7 @@
       item-color="accent"
       color="accent"
     ></v-select>
-    <v-switch v-model="showWind" label="显示风速" color="accent"></v-switch>
+    <v-switch v-model="showWind" label="显示风向" color="accent"></v-switch>
   </div>
 </template>
 
