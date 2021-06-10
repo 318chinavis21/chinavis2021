@@ -259,8 +259,8 @@ export default {
       anotherData = data.map((d) => {
         const [px, py] = projection([d.lon, d.lat]);
         return Object.assign(d, {
-          lon: px,
-          lat: py,
+          x: px,
+          y: py,
         });
       });
       hexData = hexbin(anotherData);
