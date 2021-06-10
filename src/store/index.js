@@ -11,7 +11,7 @@ const config = _.cloneDeep(default_setting);
 export default new Vuex.Store({
   state: {
     ...config,
-    selectedStation: null,
+    selectedStation: [],
   },
   mutations: {
     setTimestamp(state, val) {
