@@ -110,15 +110,15 @@ export default {
     anotherData = data.map((d) => {
       const [px, py] = projection([d.lon, d.lat]);
       return Object.assign(d, {
-        lon: px,
-        lat: py,
+        x: px,
+        y: py,
       });
     });
 
     hexbin = d3
       .hexbin()
-      .x((d) => d.lon)
-      .y((d) => d.lat)
+      .x((d) => d.x)
+      .y((d) => d.y)
       .radius(hexR);
     hex = svg.append("g");
     hexData = hexbin(anotherData);
